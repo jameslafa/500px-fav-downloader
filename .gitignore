@@ -1,0 +1,10 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# PyCharm
+.idea/*
+
+# Secret files
+config/config.ini
+config/secrets.ini

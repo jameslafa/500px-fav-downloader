@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>500px favorite downloader</title>
+</head>
+<body>
+    Welcome {{user['firstname']}}
+
+    <ul>
+        {% for favorite in favorites %}
+        <li><img src="{{favorite['image_url']}}"</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
