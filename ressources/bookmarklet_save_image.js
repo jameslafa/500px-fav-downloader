@@ -1,0 +1,1 @@
+javascript:(function(){location.href='http://127.0.0.1:5000/save?url='+encodeURIComponent(location.href);})();

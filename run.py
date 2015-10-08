@@ -1,9 +1,14 @@
 import configparser
 import random
 import string
-from flask import Flask, url_for, request, redirect, flash, render_template
+import re
+
+from flask import Flask, url_for, request, redirect, render_template
+
 from helpers.secrets import Secrets
 from helpers.api import API
+from helpers.file_saver import FileSaver
+
 
 # Read the config file
 config = configparser.ConfigParser()
@@ -59,6 +64,45 @@ def index():
     except RuntimeError:
         # Couldn't request the api, ask the user to login again
         return render_template('login_required.html')
+
+
+@app.route('/save')
+def save_from_url():
+    """
+    This url should be called from a bookmarklet.
+    The request must have an url query_parameter containing the 500px photo page of the picture we want to download
+    :return: redirect to the original 500px photo page
+    """
+
+    # Extract the url of the photo page from the url parameter. This parameter is mandatory
+    url = request.args.get('url')
+    if not url:
+        return "You must include an url query parameter, example: " \
+               "http://www.app.com/save?url=https%3A%2F%2F500px.com%2Fphoto%2F124318357%2Fpeace-by-antonio-amati"
+
+    # Get image details, get the image url and save it on the disk
+
+    # Check that the url is valid
+    url_match = re.match(r"^https://500px.com/photo/(\d+)/*", url)
+    if url_match:
+        # Extract photo_id from the url
+        photo_id = url_match.group(1)
+        # Get image details to get the final image url
+        photo_details = api.get('photos/{photo_id}?image_size=2048&comments=0'.format(photo_id=photo_id))
+        image_url = photo_details.data.get('photo').get('image_url')
+
+        # Create a file saver object to save the image after download
+        file_saver = FileSaver(storage_type=config['Application']['storage_type'],
+                               disk_storage_path=config['Application']['disk_storage_path'])
+
+        # Save the image from the image's url
+        file_saver.save_image_from_url(url=image_url, photo_id=photo_id)
+
+        # Redirect the url the to original 500px page
+        return redirect(url)
+    else:
+        # The 500px photo page is not valid.
+        return str(url) + " is not a valid 500px photo page url"
 
 
 # Run the flask application
